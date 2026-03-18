@@ -20,7 +20,7 @@ classification_categories = [
     "The authors adopt or use distance values from Bailer-Jones et al. in their analysis, tables or figures.",
     "The authors discuss the methodology or use the method of Bailer-Jones et al..",
     "The authors cite Bailer-Jones et al. for background information or a passing mention.",
-    "The authors criticise or discuss limitations of Bailer-Jones et al..",
+    "The authors criticise, discuss limitations, make suggestions for improvements or comment on Bailer-Jones et al..",
     "The authors compare their results or distances to Bailer-Jones et al..",
     "The authors extend or build upon the work of Bailer-Jones et al. in a significant way."
 ]
