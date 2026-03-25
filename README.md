@@ -1,6 +1,6 @@
-# Citation classification pipelines
+# Citation classification 
 
-This repository inludes a collection of Python pipelines that classify how papers cite these five distance estimation papers by Bailer-Jones et al.:
+This repository inludes a collection of Python pipelines that classify how papers cite these five distance estimation papers by Bailer-Jones et al. and some tests:
 
 - Bailer-Jones 2023: Estimating Distances from Parallaxes. VI. A Method for Inferring Distances and Transverse Velocities from Parallaxes and Proper Motions Demonstrated on Gaia Data Release 3
 - Bailer-Jones et al. 2021: Estimating Distances from Parallaxes. V. Geometric and Photogeometric Distances to 1.47 Billion Stars in Gaia Early Data Release 3
@@ -30,20 +30,6 @@ The output is in the output_zeroshot_1cat.csv file with the following columns:
 "distance_used_score" indicates the confidence score of the classification model. 
 
 
-## classify_citations_zeroshot_2cat.py 
-
-Uses the same model as classify_citations_zeroshot_1cat.py, only that it adopts two hypotheses between which the model has to decide (multiple labels forbidden). The hypotheses are: 
-
-"The authors adopt or use distance values from Bailer-Jones et al. in their analysis, tables or figures." and 
-"The authors cite Bailer-Jones et al. only for background, methodology, a passing mention or other non-distance reasons."
-
-The output file is output_zeroshot_2cat.csv and is almost the same: 
-
-"bibcode", "citation_context_no","citation_context","target_reference", "predicted_label", "distance_used_score", "distance_not_used_score"
-
-This additionally includes the "distance_not_used_score". 
-
-
 ## classify_citations_textgen_2cat.py
 
 Uses the the pre-trained text-generation model "Qwen/Qwen2.5-7B-Instruct". It either generates the text "uses_distance_catalogue" or "does_not_use_distance_catalogue". The prompt is: 
@@ -65,19 +51,44 @@ uses_distance_catalogue
 or
 does_not_use_distance_catalogue"
 
-The output is output_textgen_2cat.csv. Its headers are analogous to classify_citations_zeroshot_1cat.py and classify_citations_zeroshot_2cat.py, only without scores. 
+The output headers are analogous to classify_citations_zeroshot_1cat.py and classify_citations_zeroshot_2cat.py, only without scores. 
 
 --> would not use this, since it takes more than a minute to classify each context without improving the result. 
+
+## classify_citations_zeroshot_6cat.py
+
+Uses the either "MoritzLaurer/deberta-v3-large-zeroshot-v2.0" or "microsoft/deberta-large-mnli" model to classify into the following categories: 
+
+- distance_usage
+- methodology
+- background
+- criticism
+- comparison
+- extension
+
+Descriptions and Hypothesis formulations can be found and adjuyted in the file itself under classification_categories. Scores for each category are in the output. 
+
+
+## classify_citations_zeroshot_2cat.py
+
+Uses the "microsoft/deberta-large-mnli" model to classify into two categories: 
+
+- "The authors directly use or adopt distance (dis-tance) values derived in Bailer-Jones et al. in their analysis, tables, or figures. This includes statements that distances are taken, adopted, retrieved, or cross-matched from Bailer-Jones, use of published distance catalogue values and derived calculations directly based on those adopted distances.",
+- "The authors either comment on methodology, critically evaluate, discuss limitations of, or suggest improvements to the methods or results presented in Bailer-Jones et al.. This includes either discussing limitations, assumptions, weaknesses, highlighting failure cases, altering the Bayesian distance estimation method, suggesting improvements, alternative or similar approaches."
+
+This has been done for all the papers and not just a test set. The results are in output_zeroshot_2cat_use_or_comment_all.csv.
 
 ## classify_citations_sentiment.py
 
 Uses the pre-trained model 'ProsusAI/finbert' for a sentiment analysis: positive, negative and neutral.
 
-Output in output_setiment.py. Besides the usual headers, there is "sentiment_result", which can be "positive", "negative" or "neutral", and "score", which tells us how confidently the model has decided on that sentiment. 
+Output in output_setiment.csv. Besides the usual headers, there is "sentiment_result", which can be "positive", "negative" or "neutral", and "score", which tells us how confidently the model has decided on that sentiment. 
 
-## quality_check.ipynb
+This has been done for all the papers and not just a test set. The results are in output_sentiment_all.csv.
 
-Notebook that compares the example outputs for the same random test set of 100 papers stored in the [...]_test.csv files, that has also been manually analyzed in comparison_file.csv.  
+## results.ipynb
+
+Notebook in which tests for all classifcations and the final results can be inspected. 
 
 # Other files: 
 
@@ -88,7 +99,6 @@ Run to download all .pdf papers that cite the 6 distance estimation papers from 
 ## functions.py
 
 Contains general functions for extracting the citation contexts from pdf files and cleaning its format. 
-
 
 
 
