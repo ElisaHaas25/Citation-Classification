@@ -44,18 +44,6 @@ The output file is output_zeroshot_2cat.csv and is almost the same:
 This additionally includes the "distance_not_used_score". 
 
 
-## classify_citations_zeroshot_3cat.py 
-
-Uses the same model as classify_citations_zeroshot_1cat.py, only that it adopts three hypotheses. Multiple hypotheses are allowed to be true, so the score does not add up to 1 in the end. The hypotheses are: 
-
-"The authors adopt or use distance values from Bailer-Jones et al. in their analysis, tables or figures.", 
-"The authors cite Bailer-Jones et al. for methodology, they either use, discuss, extend or alter the method by Bailer-Jones et al." and 
-"The authors cite Bailer-Jones et al. for background, a passing mention or other non-distance reasons and non-methodology reasons."
-
-The output file is output_zeroshot_3cat.csv: 
-
-"bibcode", "citation_context_no","citation_context","target_reference", "predicted_label","distance_used_score", "methodology_score", "other_score"
-
 ## classify_citations_textgen_2cat.py
 
 Uses the the pre-trained text-generation model "Qwen/Qwen2.5-7B-Instruct". It either generates the text "uses_distance_catalogue" or "does_not_use_distance_catalogue". The prompt is: 

@@ -10,12 +10,34 @@ import random
 
 random.seed(123) 
 
+import time
+
+start = time.time()
+
+
 # configuration
 
 # define category labels for classification
+
+#output_zeroshot_2cat.csv
+
+#classification_categories = [
+#    "The authors adopt or use distance values from Bailer-Jones et al. in their analysis, tables or figures.",
+#    "The authors cite Bailer-Jones et al. only for background, methodology, a passing mention or other non-distance reasons."
+#]
+
+# output_zeroshot_2cat_use_or_comment.csv
+
+#classification_categories = [
+#    "The authors directly use or adopt distance values derived in Bailer-Jones et al. in their analysis, tables, or figures. This includes statements that distances are taken, adopted, retrieved, or cross-matched from Bailer-Jones, use of published distance catalogue values and derived calculations directly based on those adopted distances.",
+#    "The authors comment on methodology, or critically evaluate, discuss limitations of, or suggest improvements to the methods or results presented in Bailer-Jones et al.. This includes discussing limitations, assumptions, or weaknesses, highlighting failure cases, altering the Bayesian distance estimation method, or suggesting improvements or alternative or similar approaches."
+#]
+
+# output_zeroshot_2cat_use_or_comment2.csv
+
 classification_categories = [
-    "The authors adopt or use distance values from Bailer-Jones et al. in their analysis, tables or figures.",
-    "The authors cite Bailer-Jones et al. only for background, methodology, a passing mention or other non-distance reasons."
+    "The authors directly use or adopt distance (dis-tance) values derived in Bailer-Jones et al. in their analysis, tables, or figures. This includes statements that distances are taken, adopted, retrieved, or cross-matched from Bailer-Jones, use of published distance catalogue values and derived calculations directly based on those adopted distances.",
+    "The authors either comment on methodology, critically evaluate, discuss limitations of, or suggest improvements to the methods or results presented in Bailer-Jones et al.. This includes either discussing limitations, assumptions, weaknesses, highlighting failure cases, altering the Bayesian distance estimation method, suggesting improvements, alternative or similar approaches."
 ]
 
 pdf_directory = "ads_papers" 
@@ -60,8 +82,9 @@ target_references = {
 
 classifier = pipeline(
     "zero-shot-classification",
-    model="MoritzLaurer/deberta-v3-large-zeroshot-v2.0",
-    #model="microsoft/deberta-large-mnli",
+    #model="MoritzLaurer/deberta-v3-large-zeroshot-v2.0",
+    model="microsoft/deberta-large-mnli",
+    #truncation=False,
     device=-1   # CPU
 )
 
@@ -70,25 +93,22 @@ def classify_context(context):
     result = classifier(
         context,
         classification_categories,
-        multi_label=False
+        multi_label=True
     )
 
     return result
 
-# Classify citations 
+pdfs = [f for f in os.listdir(pdf_directory) if f.lower().endswith(".pdf")]
 
+#pdfs_all = [f for f in os.listdir(pdf_directory) if f.lower().endswith(".pdf")]
+#pdfs = random.sample(pdfs_all, 100)   #pdfs_all[40:50]   # limit to 10 for testing
 
-pdfs_all = [f for f in os.listdir(pdf_directory) if f.lower().endswith(".pdf")]
-
-pdfs = pdfs_all
-#pdfs = random.sample(pdfs_all, 100)    # limit to 10 for testing
-
-with open("output_zeroshot_2cat.csv", mode="w", newline="", encoding="utf-8") as f:
+with open("output_zeroshot_2cat_use_or_comment_all.csv", mode="w", newline="", encoding="utf-8") as f:
 
     writer = csv.writer(f)
 
-    writer.writerow(["bibcode", "citation_context_no","citation_context","target_reference", "predicted_label", "distance_used_score", "distance_not_used_score"])
-    #writer.writerow(["bibcode", "citation_context_no","citation_context","target_reference", "predicted_label", "distance_used_score", "distance_not_used_score","used_finetune_model"])
+    #writer.writerow(["bibcode", "citation_context_no","citation_context","target_reference", "predicted_label", "distance_used_score", "distance_not_used_score"])
+    writer.writerow(["bibcode", "citation_context_no","citation_context","target_reference", "distance_used_score", "comment_score"])
 
     for i in range(len(pdfs)):  
 
@@ -143,49 +163,43 @@ with open("output_zeroshot_2cat.csv", mode="w", newline="", encoding="utf-8") as
 
         # 6. Classify each context
         
-        for j in range(len(contexts)):
+        if len(contexts) > 0: 
 
-            context = contexts[j]
+            results = classify_context(contexts)
 
-            print(f"[Context {j+1}]")
-            print("")
-            print(context)
+            for j in range(len(contexts)):
 
-            result = classify_context(context)
-            
-            # Extract scores into dictionary
-            
-            scores_dict = dict(zip(result["labels"], result["scores"]))
-            
-            data_usage_score = scores_dict[classification_categories[0]]
-            non_data_usage_score = scores_dict[classification_categories[1]]
-            
-            # Determine predicted label
-            
-            if data_usage_score > 0.5:
-                predicted_label = "uses_distance_catalogue"
-                used_finetune_model = False
-            
-            elif non_data_usage_score > 0.5:
-                predicted_label = "does_not_use_distance_catalogue"
-                used_finetune_model = False
-            
-            #else:
-            #    predicted_label = classify_context_fine(context)
-            #    used_finetune_model = True
-            
-            writer.writerow([filename.replace(".pdf", ""), j+1, context, ref_keys_found[j] ,predicted_label,  data_usage_score, non_data_usage_score])
-            #writer.writerow([filename.replace(".pdf", ""), j+1, context, ref_keys_found[j] ,predicted_label,  data_usage_score, non_data_usage_score, used_finetune_model])
+                context = contexts[j]
 
-            print(" ")
-            print("distance_used score:", data_usage_score)
-            print("distance_not_used score:", non_data_usage_score)
-            #print("Used fine-tuned model for final classification:", used_finetune_model)
-            print("Prediction:", predicted_label)
+                print(f"[Context {j+1}]")
+                print("")
+                print(context)
 
-            print("-" * 60)
+                #result = classify_context(context)
+                result = results[j]
+                # Extract scores into dictionary
+
+                scores_dict = dict(zip(result["labels"], result["scores"]))
+
+                data_usage_score = scores_dict[classification_categories[0]]
+                comment_score = scores_dict[classification_categories[1]]
+
+                #writer.writerow([filename.replace(".pdf", ""), j+1, context, ref_keys_found[j] ,predicted_label,  data_usage_score, non_data_usage_score])
+                writer.writerow([filename.replace(".pdf", ""), j+1, context, ref_keys_found[j] ,  data_usage_score, comment_score])
+
+                print(" ")
+                print("distance_used score:", data_usage_score)
+                print("comment score", comment_score)
+                #print("distance_not_used score:", non_data_usage_score)
+                #print("Used fine-tuned model for final classification:", used_finetune_model)
+                #print("Prediction:", predicted_label)
+
+                print("-" * 60)
 
 
+end = time.time()
+
+print("Execution time:", end - start, "seconds")
 
 
 
