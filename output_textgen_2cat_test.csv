@@ -1,4 +1,4 @@
-bibcode,citation_context,predicted_label,distance_used_score,distance_not_used_score,used_finetune_model
+bibcode,citation_context_no,predicted_label,distance_used_score,distance_not_used_score,used_finetune_model
 2025ApJ...994..133M,1,does_not_use_distance_catalogue,0.23717816174030304,0.7628218531608582,True
 2025ApJ...994..133M,2,uses_distance_catalogue,0.9920620322227478,0.007937994785606861,True
 2025ApJ...994..133M,3,uses_distance_catalogue,0.9905418157577515,0.009458226151764393,True
